@@ -1,0 +1,84 @@
+Data cleaning project
+Author Najib Shaikh
+
+
+import pandas as pd
+
+# Load the layoffs data
+file_path = "C:/Users/najib shaikh/Python/layoffs/layoffs data for data cleaning project.csv"
+df = pd.read_csv(file_path)
+
+# Display first few rows and column names for verification
+print(df.head())  
+print(df.columns)
+
+# Set display options for better visibility
+pd.options.display.max_rows = 9999
+pd.options.display.max_columns = 100
+
+# Print key columns for review
+print(df["company"])
+print(df["location"])
+print(df["industry"])
+
+# Filter rows where "industry" column is empty or NaN
+filtered_df = df[df["industry"].isna() | (df["industry"] == "")]
+print(filtered_df)
+
+# Replace empty strings with actual NaN values in "industry" column
+df["industry"] = df["industry"].replace("", pd.NA)
+
+# Create a dictionary mapping companies to their known industries (excluding NaN)
+company_to_industry = df.dropna(subset=["industry"]).set_index("company")["industry"].to_dict()
+
+# Fill missing "industry" values using the dictionary
+df["industry"] = df["industry"].fillna(df["company"].map(company_to_industry))
+
+# Print updated "industry" column to verify changes
+print(df["industry"])
+
+# Print "total_laid_off" and "percentage_laid_off" columns for review
+print(df["total_laid_off"])
+print(df["percentage_laid_off"])
+
+# Convert percentage from decimal to percentage format (multiply by 100)
+df["percentage_laid_off"] = df["percentage_laid_off"] * 100
+
+# Print updated "percentage_laid_off" column
+print(df["percentage_laid_off"])
+
+# Print original "date" column
+print(df['date'])
+
+# Convert "date" column to proper datetime format
+df['date'] = pd.to_datetime(df['date'], errors="coerce")
+
+# Format date as "DD-MM-YYYY"
+df["date"] = df["date"].dt.strftime("%d-%m-%Y")
+
+# Print updated "date" column
+print(df['date'])
+
+# Print "stage" column
+print(df['stage'])
+
+# Print "country" column
+print(df["country"])
+
+# Correct inconsistency in "United States." by replacing it with "United States"
+df["country"] = df["country"].replace("United States.", "United States")
+
+# Print updated "country" column
+print(df["country"])
+
+# Print "funds_raised_millions" column
+print(df['funds_raised_millions'])
+
+#checking duplicates
+print(df.duplicated())
+
+#removed duplicates
+df.drop_duplicates(inplace = True)
+
+# Save the cleaned data to a new CSV file
+df.to_csv("C:/Users/najib shaikh/Python/layoffs/cleaned_layoffs_data.csv", index=False)
