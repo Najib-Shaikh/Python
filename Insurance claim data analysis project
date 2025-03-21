@@ -1,0 +1,121 @@
+-- Insurance claim data analysis python project
+-- Author Najib Shaikh
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+# ---------------------------------------------
+# Step 1: Load and Inspect the Claims Data
+# ---------------------------------------------
+
+# Define file path
+file_path = "C:/Users/najib shaikh/Python/Insurance_claim/insurance_claims_data.csv"
+
+# Load the dataset
+df = pd.read_csv(file_path)
+
+# Display basic information about the dataset
+df.info()
+print(df.head())  # Display first 5 rows
+
+# Set display options to show more rows/columns
+pd.options.display.max_rows = 1000
+pd.options.display.max_columns = 100
+
+# ---------------------------------------------
+# Step 2: Summary Statistics and Data Exploration
+# ---------------------------------------------
+
+# Compute and display the mean of 'Billed Amount'
+print("Mean Billed Amount:", df['Billed Amount'].mean())
+
+# Display overall numerical summary
+print(df.mean(numeric_only=True))
+
+# Exclude identifier columns and generate summary table
+numeric_cols = df.select_dtypes(include=['number']).columns
+numeric_cols = numeric_cols.drop(['Provider ID', 'Patient ID', 'Procedure Code'], errors='ignore')
+summary_table = df[numeric_cols].describe().T
+summary_table['mode'] = df[numeric_cols].mode().iloc[0]  # Add mode separately
+print(summary_table)
+
+# ---------------------------------------------
+# Step 3: Frequency Analysis of Categorical Variables
+# ---------------------------------------------
+
+# Display mode (most frequent value) for procedure and diagnosis codes
+print(df[['Procedure Code', 'Diagnosis Code']].mode())
+
+# Frequency distribution of Procedure Codes
+print(df['Procedure Code'].value_counts(normalize=True) * 100)  # Percentage format
+print(df['Procedure Code'].value_counts())  # Absolute count
+
+# Frequency distribution of Diagnosis Codes
+print(df['Diagnosis Code'].value_counts())
+
+# Frequency distribution of key categorical variables
+print(df['Insurance Type'].value_counts())
+print(df['Claim Status'].value_counts())
+print(df['Reason Code'].value_counts())
+print(df['Follow-up Required'].value_counts())
+print(df['AR Status'].value_counts())
+print(df['Outcome'].value_counts())
+
+# ---------------------------------------------
+# Step 4: Correlation Analysis (Numerical Data)
+# ---------------------------------------------
+
+# Select only numeric columns, excluding identifiers
+numeric_df = df.select_dtypes(include=['number'])
+numeric_df = numeric_df.loc[:, ~numeric_df.columns.isin(['Provider ID', 'Patient ID', 'Procedure Code', 'Year', 'Month'])]
+
+# Compute and display the correlation matrix
+correlation_matrix = numeric_df.corr()
+print(correlation_matrix)
+
+# ---------------------------------------------
+# Step 5: Time-Series Analysis of Claims Data
+# ---------------------------------------------
+
+# Convert 'Date of Service' to datetime format
+df['Date of Service'] = df['Date of Service'].str.strip()
+df['Date of Service'] = pd.to_datetime(df['Date of Service'], errors='coerce', infer_datetime_format=True)
+
+# Print updated 'Date of Service' column
+print(df['Date of Service'])
+
+# Extract year and month for trend analysis
+df['Year'] = df['Date of Service'].dt.year
+df['Month'] = df['Date of Service'].dt.month
+df['Year-Month'] = df['Date of Service'].dt.to_period('M')  # YYYY-MM format
+
+# Compute monthly and yearly trends
+monthly_trend = df.groupby('Year-Month').size()
+yearly_trend = df.groupby('Year').size()
+
+print("Monthly Trend:\n", monthly_trend)
+print("Yearly Trend:\n", yearly_trend)
+
+# ---------------------------------------------
+# Step 6: Visualizing Claim Trends
+# ---------------------------------------------
+
+# Plot Monthly Claim Trend
+plt.figure(figsize=(10,5))
+monthly_trend.plot(kind='line', marker='o', title='Monthly Claim Trend')
+plt.xlabel('Year-Month')
+plt.ylabel('Number of Claims')
+plt.grid(True)
+plt.show()
+
+# Plot Yearly Claim Trend
+plt.figure(figsize=(8,5))
+yearly_trend.plot(kind='bar', title='Yearly Claim Trend')
+plt.xlabel('Year')
+plt.ylabel('Number of Claims')
+plt.xticks(rotation=0)
+plt.grid(axis='y')
+plt.show()
+
+
